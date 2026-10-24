@@ -3,18 +3,42 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Royal Conquest Test</title>
+<title>Royal Conquest Firebase Test</title>
 <style>
-body{margin:0;background:#071018;color:white;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh}
-.box{padding:32px;border:3px solid #ffd166;border-radius:18px;text-align:center;max-width:680px;background:#101b28}
-h1{color:#ffd166;font-size:34px;margin:0 0 14px}.ok{font-size:22px;font-weight:800}
+body{margin:0;background:#071018;color:#fff;font-family:Arial,sans-serif;display:grid;place-items:center;min-height:100vh}
+.box{padding:32px;border:3px solid #ffd166;border-radius:18px;text-align:center;max-width:720px;background:#101b28}
+h1{color:#ffd166;font-size:32px;margin:0 0 18px}
+#status{font-size:24px;font-weight:900;margin:18px 0;padding:14px;border-radius:12px;background:#243247}
+.small{color:#b9c3cf;font-size:14px}
+.ok{background:#1f7a48!important}.err{background:#9d3434!important}
 </style>
 </head>
 <body>
 <div class="box">
 <h1>VESIMA ROYAL CONQUEST</h1>
-<div class="ok">TEST GITHUB PAGES OK ✅</div>
-<p>Se vedi questa schermata, GitHub Pages sta pubblicando correttamente i nuovi file.</p>
+<div>TEST FIREBASE MINIMALE</div>
+<div id="status">☁ AVVIO TEST…</div>
+<div class="small">Questa pagina verifica solo il collegamento tra browser e Firebase.</div>
 </div>
+<script>
+const DB='https://vesima-royal-conquest-default-rtdb.europe-west1.firebasedatabase.app/royalConquest/ping.json';
+const s=document.getElementById('status');
+(async()=>{
+  try{
+    s.textContent='☁ CONNESSIONE FIREBASE…';
+    const wr=await fetch(DB,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ok:true,ts:Date.now()})});
+    if(!wr.ok)throw new Error('WRITE '+wr.status);
+    const rr=await fetch(DB+'?t='+Date.now(),{cache:'no-store'});
+    if(!rr.ok)throw new Error('READ '+rr.status);
+    const data=await rr.json();
+    if(!data||data.ok!==true)throw new Error('DATI NON VALIDI');
+    s.textContent='☁ FIREBASE ONLINE ✅';
+    s.className='ok';
+  }catch(e){
+    s.textContent='☁ FIREBASE ERRORE · '+e.message;
+    s.className='err';
+  }
+})();
+</script>
 </body>
 </html>
