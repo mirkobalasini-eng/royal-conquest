@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VESIMA ROYAL CONQUEST — v1.7.2.1 MINIMAL SYNC</title>
+<title>VESIMA ROYAL CONQUEST — v1.7.2.1 MINIMAL SYNC ISOLATO</title>
 <style>
 :root{
   --bg:#05070a;--panel:#0c1118;--panel2:#121925;--text:#f7f3e8;--muted:#aab2c3;
@@ -1046,7 +1046,7 @@ const factionOrder=['m','d','g','c','p','b'];
 
 
 /* ===== RISULTATI CAPITANI / DOPPIA CONFERMA / PROCLAMAZIONE ===== */
-const RESULT_KEY='vesimaRoyalConquest_results_v17';
+const RESULT_KEY='vesimaRoyalConquest_results_sync_test_v1';
 const battleDefs=[
  {id:0,field:'RIGEN',territory:'Cengio',attacker:'m',defender:'d'},
  {id:1,field:'CASTELLO',territory:'Cairo Montenotte',attacker:'p',defender:'c'},
@@ -1055,7 +1055,7 @@ const battleDefs=[
 function defaultBattleResults(){return battleDefs.map(b=>({...b,d1a:0,d1d:0,d2a:0,d2d:0,status:'draft',revealed:false,submittedBy:null,confirmedBy:null}))}
 function loadBattleResults(){try{const raw=localStorage.getItem(RESULT_KEY);if(raw){const p=JSON.parse(raw);if(Array.isArray(p)&&p.length===3)return p}}catch(e){}return defaultBattleResults()}
 let battleResults=loadBattleResults();
-const resultChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('vesima-royal-results-v17'):null;
+const resultChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('vesima-royal-results-sync-test-v1'):null;
 function saveBattleResults(){try{localStorage.setItem(RESULT_KEY,JSON.stringify(battleResults))}catch(e){}if(resultChannel)try{resultChannel.postMessage({type:'results',data:battleResults})}catch(e){} renderResultSurfaces()}
 if(resultChannel)resultChannel.onmessage=e=>{if(e.data&&e.data.type==='results'&&Array.isArray(e.data.data)){battleResults=e.data.data;renderResultSurfaces();if(typeof renderMap==='function')rerenderMaps()}};
 window.addEventListener('storage',e=>{if(e.key===RESULT_KEY&&e.newValue){try{battleResults=JSON.parse(e.newValue);renderResultSurfaces();if(typeof renderMap==='function')rerenderMaps()}catch(err){}}});
@@ -1535,8 +1535,8 @@ const resetBtn=document.getElementById('resetResults');if(resetBtn)resetBtn.oncl
 
 /* ===== MOTORE STATO TORNEO v1.5.1 =====
    FIX: tournamentState usa var/hoisting sicuro perché le mappe vengono renderizzate prima del bootstrap Regia. */
-const TOURNAMENT_KEY='vesimaRoyalConquest_state_v17';
-const TOURNAMENT_CHANNEL_NAME='vesima-royal-state-v17';
+const TOURNAMENT_KEY='vesimaRoyalConquest_state_sync_test_v1';
+const TOURNAMENT_CHANNEL_NAME='vesima-royal-state-sync-test-v1';
 const tournamentChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel(TOURNAMENT_CHANNEL_NAME):null;
 function freshFactionFlags(v=false){return Object.fromEntries(factionOrder.map(k=>[k,v]))}
 const INITIAL_OWNER_STATE={'Savona':'b','Altare':'c','Mallare':'d','Bormida':'b','Osiglia':'c','Pallare':'b','Carcare':'p','Ferrania':'g','Bragno':'m','Cairo Montenotte':'c','Plodio':'p','Cosseria':'g','Millesimo':'m','Roccavignale':'g','Cengio':'d','Saliceto':'p','Dego':'m','Piana Crixia':'d'};
@@ -1555,8 +1555,8 @@ function changeFactionCards(k,delta){if(!factionOrder.includes(k))return;if(delt
 function territoryCountsByFaction(){const out=Object.fromEntries(factionOrder.map(k=>[k,0]));try{rebuildTerritoryOwners();Object.values(territories).forEach(t=>{if(out[t.owner]!==undefined)out[t.owner]++})}catch(e){}return out}
 
 /* ===== SMARTPHONE CAPITANI v1.6 ===== */
-const CAPTAIN_KEY='vesimaRoyalConquest_captains_v17';
-const CAPTAIN_CHANNEL_NAME='vesima-royal-captains-v17';
+const CAPTAIN_KEY='vesimaRoyalConquest_captains_sync_test_v1';
+const CAPTAIN_CHANNEL_NAME='vesima-royal-captains-sync-test-v1';
 const captainChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel(CAPTAIN_CHANNEL_NAME):null;
 const royalCardNames=['','FORTEZZA','PARACADUTISTI','SPIA','SCUDO REALE','BLITZ','INSURREZIONE'];
 const ROYAL_CARD_INFO={
@@ -1790,14 +1790,14 @@ function previousOperationalPhase(){const current=screens[idx]?.dataset.name||''
 function operationalPrimaryLabel(){const current=screens[idx]?.dataset.name||'Attesa';if(current==='Attesa')return 'PRESENTA LE CASATE →';if(current==='Casate')return 'MOSTRA I REGNI →';if(current==='Regni')return `APRI ORDINI SEGRETI · TURNO ${tournamentState.turn} →`;if(current==='Secret Orders')return `CHIUDI ORDINI (${orderLockedCount()}/6) · CONSIGLIO DI GUERRA →`;if(current==='War Council')return 'RISOLVI COLLISIONI · SVELA GLI ORDINI →';if(current==='Reveal'){const pending=tournamentState.resolution?.pendingCardReactions?.length||0;if(pending)return `ATTENDI REAZIONI SCUDO · ${pending}`;const parts=lineupParticipants().length,locked=lineupLockedCount();return parts?`FORMAZIONI ${locked}/${parts} · CONFERMA TRE GUERRE →`:'CONFERMA LE TRE GUERRE →'}if(current==='Tre Guerre')return 'AVVIA DUELLO 1 · 15:00 →';if(current==='Duello')return tournamentState.duel===1?'CHIUDI DUELLO 1 · AVVIA DUELLO 2 →':'CHIUDI DUELLO 2 · RISULTATI CAPITANI →';if(current==='Risultati Capitani')return 'CAPITANI ALLA TV · APRI VERDETTI →';if(current==='Verdetti'){const n=battleResults.filter(r=>r.status==='ready'&&!r.revealed).length;if(n)return `PROCLAMA PROSSIMO VERDETTO · ${n} PRONTI`;if(battleResults.every(r=>r.revealed))return 'TUTTI PROCLAMATI · MOSTRA ESITO →';return 'IN ATTESA DEI RISULTATI CAPITANI'}if(current==='Esito')return 'MOSTRA DOMINI AGGIORNATI →';if(current==='Domini')return tournamentState.turn<8?`CHIUDI TURNO ${tournamentState.turn} · APRI TURNO ${tournamentState.turn+1} →`:'CHIUDI LA GUERRA · BATTAGLIA FINALE →';if(current==='Final Battle')return 'PROCLAMAZIONE FINALE →';return 'TORNEO CONCLUSO'}
 
 /* ===== TIMER AUTOREVOLE REGIA ===== */
-const TIMER_KEY='vesimaRoyalConquest_timers_v17';
+const TIMER_KEY='vesimaRoyalConquest_timers_sync_test_v1';
 const timerDefaults={secret:90,duel:900};
 function loadTimers(){try{const r=JSON.parse(localStorage.getItem(TIMER_KEY)||'null');if(r&&r.secret&&r.duel)return r}catch(e){}return {secret:{remaining:90,running:false,endAt:null},duel:{remaining:900,running:false,endAt:null}}}
 let timerState=loadTimers();
 function timerSeconds(k){const t=timerState[k];if(!t)return 0;if(t.running&&t.endAt){const r=Math.max(0,Math.ceil((t.endAt-Date.now())/1000));if(r<=0){t.running=false;t.remaining=0;t.endAt=null;saveTimers(false)}return r}return Math.max(0,Math.round(t.remaining||0))}
 function fmtTime(s){s=Math.max(0,Math.round(s));return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
 function saveTimers(emit=true){try{localStorage.setItem(TIMER_KEY,JSON.stringify(timerState))}catch(e){}if(emit&&timerChannel)try{timerChannel.postMessage(timerState)}catch(e){}updateTimerDisplays()}
-const timerChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('vesima-royal-timers-v17'):null;
+const timerChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('vesima-royal-timers-sync-test-v1'):null;
 if(timerChannel)timerChannel.onmessage=e=>{if(e.data&&e.data.secret&&e.data.duel){timerState=e.data;updateTimerDisplays()}};
 window.addEventListener('storage',e=>{if(e.key===TIMER_KEY&&e.newValue){try{timerState=JSON.parse(e.newValue);updateTimerDisplays()}catch(err){}}});
 function timerAction(k,action){const t=timerState[k];if(!t)return;if(action==='start'&&!t.running){const r=timerSeconds(k);t.remaining=r;t.endAt=Date.now()+r*1000;t.running=true}else if(action==='pause'&&t.running){t.remaining=timerSeconds(k);t.running=false;t.endAt=null}else if(action==='reset'){t.running=false;t.endAt=null;t.remaining=timerDefaults[k]}saveTimers()}
@@ -1813,15 +1813,15 @@ function nomeCartaIT(card){return card==='BLITZ'?'ASSALTO LAMPO':card}
 /* ===== NAVIGAZIONE + REGIA ===== */
 const screens=[...document.querySelectorAll('.screen')],nav=document.getElementById('nav');let idx=0;
 const params=new URLSearchParams(location.search),isTvMode=params.get('tv')==='1';if(isTvMode)document.body.classList.add('tv-mode');
-const NAV_KEY='vesimaRoyalConquest_nav_v17';
-const navChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('vesima-royal-nav-v17'):null;
+const NAV_KEY='vesimaRoyalConquest_nav_sync_test_v1';
+const navChannel=typeof BroadcastChannel!=='undefined'?new BroadcastChannel('vesima-royal-nav-sync-test-v1'):null;
 function broadcastScreen(){if(isTvMode)return;const payload={idx,name:screens[idx].dataset.name,ts:Date.now()};try{localStorage.setItem(NAV_KEY,JSON.stringify(payload))}catch(e){}if(navChannel)try{navChannel.postMessage(payload)}catch(e){}}
 function show(i,broadcast=true){
  idx=(i+screens.length)%screens.length;
  screens.forEach((s,n)=>s.classList.toggle('active',n===idx));
  [...nav.children].forEach((b,n)=>b.classList.toggle('active',n===idx));
  tournamentState.screen=screens[idx].dataset.name;try{localStorage.setItem(TOURNAMENT_KEY,JSON.stringify(tournamentState))}catch(e){}
- document.getElementById('topTurn').textContent=`TURNO ${tournamentState.turn}/8 · ${nomeFaseIT(screens[idx].dataset.name)} · v1.7.2.1 MINIMAL SYNC`;
+ document.getElementById('topTurn').textContent=`TURNO ${tournamentState.turn}/8 · ${nomeFaseIT(screens[idx].dataset.name)} · v1.7.2.1 MINIMAL SYNC ISOLATO`;
  renderResultSurfaces();renderDynamicBattles();renderWarResolution();updateRegia();refreshTurnLabels();
  if(screens[idx].dataset.name!=='Final Battle'&&finalRAF){cancelAnimationFrame(finalRAF);finalRAF=null;finalState=null}
  if(screens[idx].dataset.name==='Final Battle')setTimeout(startFinal,120);
@@ -1860,8 +1860,8 @@ const startScreen=params.get('screen');if(startScreen){const si=screens.findInde
 
 ensureRoyalDeckState();ensureCaptainTurn();renderStandalonePhone();updateRegia();
 
-/* ===== MINIMAL FIREBASE SYNC TEST ===== */
-const SYNC_DB='https://vesima-royal-conquest-default-rtdb.europe-west1.firebasedatabase.app/royalConquest/minimal';
+/* ===== MINIMAL FIREBASE SYNC TEST ISOLATO v2 ===== */
+const SYNC_DB='https://vesima-royal-conquest-default-rtdb.europe-west1.firebasedatabase.app/royalConquest/minimal2';
 const SYNC_CAP=new URLSearchParams(location.search).get('captain');
 let syncApplying=false,syncReady=false,syncLastJson='';
 
@@ -1921,14 +1921,13 @@ async function syncInit(){
    syncReady=true;
    if(data)syncApply(data);
    else if(!SYNC_CAP){
+     // Fresh test starts at 0/6 from this isolated page.
      await syncPut({tournament:tournamentState,captains:captainState});
    }
    syncBadge('SYNC ONLINE',true);
    setInterval(syncTick,1000);
  }catch(e){console.error(e);syncBadge('SYNC ERRORE',false)}
 }
-
-// Regia: publish only phase/state changes.
 const syncOriginalSaveTournamentState=saveTournamentState;
 saveTournamentState=function(text='',emit=true){
  syncOriginalSaveTournamentState(text,emit);
@@ -1936,8 +1935,6 @@ saveTournamentState=function(text='',emit=true){
    syncPatch({tournament:tournamentState}).catch(e=>{console.error(e);syncBadge('SYNC ERRORE',false)});
  }
 };
-
-// Capitano: publish only its own entry + locked flag.
 const syncOriginalSaveCaptainState=saveCaptainState;
 saveCaptainState=function(logText='',emit=true){
  syncOriginalSaveCaptainState(logText,emit);
@@ -1952,8 +1949,6 @@ saveCaptainState=function(logText='',emit=true){
    syncPatch({captains:captainState,tournament:tournamentState}).catch(e=>{console.error(e);syncBadge('SYNC ERRORE',false)});
  }
 };
-
-// Regia screen navigation is saved to cloud without changing original behavior.
 const syncOriginalShow=show;
 show=function(i,broadcast=true){
  syncOriginalShow(i,broadcast);
@@ -1961,7 +1956,6 @@ show=function(i,broadcast=true){
    syncPatch({tournament:tournamentState}).catch(e=>{console.error(e);syncBadge('SYNC ERRORE',false)});
  }
 };
-
 syncInit();
 
 </script>
