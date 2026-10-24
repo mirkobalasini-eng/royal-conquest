@@ -763,7 +763,7 @@ body.tv-mode .regia-launch,body.tv-mode .nav,body.tv-mode .kbd{display:none!impo
 .risoluzione-flusso{display:grid;grid-template-columns:repeat(5,1fr);gap:.38vw;margin:.7vh 0 .9vh}.risoluzione-passo{border:1px solid rgba(241,210,119,.18);border-radius:10px;background:rgba(241,210,119,.045);padding:.55vh .35vw;text-align:center;font-size:.72vh;line-height:1.15;color:#d9e0e9}.risoluzione-passo b{display:block;color:#f1d277;font-size:.82vh;margin-bottom:.18vh}.risoluzione-passo span{color:#9eabba}
 </style>
 </head>
-<body>
+<body><div id="cloudDiagBadge" style="position:fixed;right:12px;bottom:12px;z-index:100000;padding:8px 11px;border-radius:999px;background:#5b4a12;color:#fff;border:1px solid rgba(255,255,255,.25);font:900 10px Arial;letter-spacing:.08em">☁ TEST PAGINA CARICATA</div>
 <div class="app">
   <div class="brand">VESIMA <span>ROYAL CONQUEST</span></div>
   <div class="turn" id="topTurn">TV · v1.4 REGIA</div>
@@ -1034,6 +1034,15 @@ body.tv-mode .regia-launch,body.tv-mode .nav,body.tv-mode .kbd{display:none!impo
 <div id="standalonePhone"><div class="phone-shell"><div class="phone-notch"></div><div class="phone-screen" id="standalonePhoneScreen"></div></div></div>
 
 <script>
+window.addEventListener('error',function(e){
+  const b=document.getElementById('cloudDiagBadge');
+  if(b){b.textContent='☁ JS ERROR · '+(e.message||'errore');b.style.background='#9d3434'}
+});
+window.addEventListener('unhandledrejection',function(e){
+  const b=document.getElementById('cloudDiagBadge');
+  if(b){b.textContent='☁ PROMISE ERROR';b.style.background='#9d3434'}
+});
+
 const factions={
  m:{name:'Marchesi del Bormida',color:'#c89b2c',glyph:'👑'},
  d:{name:'Duchi delle Rocche',color:'#a8232c',glyph:'🏰'},
@@ -1866,8 +1875,8 @@ let cloudTestReady=false,cloudTestApplying=false,cloudTestTimer=null;
 
 function cloudTestUrl(path=''){return CLOUD_TEST_ROOT+(path?'/'+path:'')+'.json'}
 function cloudTestBadge(txt,ok){
- let el=document.getElementById('cloudTestBadge');
- if(!el){el=document.createElement('div');el.id='cloudTestBadge';Object.assign(el.style,{position:'fixed',right:'12px',bottom:'12px',zIndex:'99999',padding:'7px 10px',borderRadius:'999px',font:'900 10px Arial',letterSpacing:'.08em',color:'#fff',background:'#243247',border:'1px solid rgba(255,255,255,.2)'});document.body.appendChild(el)}
+ let el=document.getElementById('cloudDiagBadge');
+ if(!el)return;
  el.textContent='☁ '+txt;el.style.background=ok===true?'#1f7a48':ok===false?'#9d3434':'#243247'
 }
 async function cloudTestWrite(path,data){
