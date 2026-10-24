@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VESIMA ROYAL CONQUEST — v1.7.2.1 MINIMAL SYNC ISOLATO</title>
+<title>VESIMA ROYAL CONQUEST — v1.7.2.1 SYNC ORDINI + RISULTATI</title>
 <style>
 :root{
   --bg:#05070a;--panel:#0c1118;--panel2:#121925;--text:#f7f3e8;--muted:#aab2c3;
@@ -1821,7 +1821,7 @@ function show(i,broadcast=true){
  screens.forEach((s,n)=>s.classList.toggle('active',n===idx));
  [...nav.children].forEach((b,n)=>b.classList.toggle('active',n===idx));
  tournamentState.screen=screens[idx].dataset.name;try{localStorage.setItem(TOURNAMENT_KEY,JSON.stringify(tournamentState))}catch(e){}
- document.getElementById('topTurn').textContent=`TURNO ${tournamentState.turn}/8 · ${nomeFaseIT(screens[idx].dataset.name)} · v1.7.2.1 MINIMAL SYNC ISOLATO`;
+ document.getElementById('topTurn').textContent=`TURNO ${tournamentState.turn}/8 · ${nomeFaseIT(screens[idx].dataset.name)} · v1.7.2.1 SYNC ORDINI + RISULTATI`;
  renderResultSurfaces();renderDynamicBattles();renderWarResolution();updateRegia();refreshTurnLabels();
  if(screens[idx].dataset.name!=='Final Battle'&&finalRAF){cancelAnimationFrame(finalRAF);finalRAF=null;finalState=null}
  if(screens[idx].dataset.name==='Final Battle')setTimeout(startFinal,120);
@@ -1903,6 +1903,13 @@ function syncApply(data){
      captainState=data.captains;
      try{localStorage.setItem(CAPTAIN_KEY,JSON.stringify(captainState))}catch(e){}
    }
+   if(data.results){
+     if(Array.isArray(data.results))battleResults=data.results;
+     else if(typeof data.results==='object')battleResults=Object.keys(data.results).sort((a,b)=>(+a)-(+b)).map(k=>data.results[k]);
+     try{localStorage.setItem(RESULT_KEY,JSON.stringify(battleResults))}catch(e){}
+     renderResultSurfaces();
+     renderDynamicBattles();
+   }
    const si=screens.findIndex(s=>s.dataset.name===tournamentState.screen);
    if(si>=0&&si!==idx)show(si,false);
    renderStandalonePhone();
@@ -1922,7 +1929,7 @@ async function syncInit(){
    if(data)syncApply(data);
    else if(!SYNC_CAP){
      // Fresh test starts at 0/6 from this isolated page.
-     await syncPut({tournament:tournamentState,captains:captainState});
+     await syncPut({tournament:tournamentState,captains:captainState,results:battleResults});
    }
    syncBadge('SYNC ONLINE',true);
    setInterval(syncTick,1000);
@@ -1949,6 +1956,23 @@ saveCaptainState=function(logText='',emit=true){
    syncPatch({captains:captainState,tournament:tournamentState}).catch(e=>{console.error(e);syncBadge('SYNC ERRORE',false)});
  }
 };
+
+const syncOriginalSaveBattleResults=saveBattleResults;
+saveBattleResults=function(){
+ syncOriginalSaveBattleResults();
+ if(!syncReady||syncApplying)return;
+ if(SYNC_CAP&&factionOrder.includes(SYNC_CAP)){
+   const b=captainBattle(SYNC_CAP);
+   if(b&&battleResults[b.id]){
+     const payload={};
+     payload['results/'+b.id]=battleResults[b.id];
+     syncPatch(payload).catch(e=>{console.error(e);syncBadge('SYNC ERRORE',false)});
+   }
+ }else if(!SYNC_CAP){
+   syncPatch({results:battleResults}).catch(e=>{console.error(e);syncBadge('SYNC ERRORE',false)});
+ }
+};
+
 const syncOriginalShow=show;
 show=function(i,broadcast=true){
  syncOriginalShow(i,broadcast);
